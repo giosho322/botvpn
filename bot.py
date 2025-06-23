@@ -8,6 +8,7 @@ from aiogram.types import (
 )
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.filters.command import Command
+from aiogram.filters.text import Text
 from config import TOKEN, ADMINS
 from database import User, session
 from wg_utils import generate_wg_config
@@ -107,16 +108,16 @@ async def mailing(message: types.Message):
 
 # Пользователи
 dp.message.register(start, Command(commands=["start"]))
-dp.message.register(buy_vpn, lambda m: m.text == "Купить VPN 🚀")
+dp.message.register(buy_vpn, Text(equals="Купить VPN 🚀"))
 dp.callback_query.register(process_fake_payment, lambda cb: cb.data and cb.data.startswith("tariff_"))
-dp.message.register(get_config, lambda m: m.text == "Мой конфиг ⚙️")
-dp.message.register(support, lambda m: m.text == "Поддержка 🆘")
+dp.message.register(get_config, Text(equals="Мой конфиг ⚙️"))
+dp.message.register(support, Text(equals="Поддержка 🆘"))
 
 # Админ
-dp.message.register(stats, lambda m: m.text == "Статистика 📊")
-dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
-dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
-dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
+dp.message.register(stats, Text(equals="Статистика 📊"))
+dp.message.register(users_list, Text(equals="Юзеры 👥"))
+dp.message.register(ban_user, Text(equals="Бан 🔨"))
+dp.message.register(mailing, Text(equals="Рассылка 📢"))
 
 async def main():
     await dp.start_polling(bot)

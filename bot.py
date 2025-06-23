@@ -6,6 +6,7 @@ from aiogram.types import (
     InlineKeyboardButton,
     FSInputFile,
 )
+from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.filters.command import Command  # noqa
 
@@ -16,7 +17,6 @@ from datetime import datetime
 import asyncio
 import subprocess
 import os
-import signal
 
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
@@ -105,7 +105,7 @@ async def how_install(message: types.Message):
         "4. Нажми 'Activate' и пользуйся VPN 🚀\n"
         "Если что-то не работает — пиши в поддержку 🆘"
     )
-    await message.answer(text, parse_mode=types.ParseMode.MARKDOWN)
+    await message.answer(text, parse_mode=ParseMode.MARKDOWN)
 
 async def stats(message: types.Message):
     count = session.query(User).count()
@@ -129,20 +129,19 @@ async def update_bot(message: types.Message):
 
     await message.answer("🔄 Начинаю обновление бота...")
 
-    # Выполнить git pull и получить вывод
     process = await asyncio.create_subprocess_exec(
         "git", "-C", "/root/vpnbot", "pull",
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
     stdout, stderr = await process.communicate()
-    output = stdout.decode().strip() + ("\n" + stderr.decode().strip() if stderr else "")
+    output = stdout.decode().strip()
+    if stderr:
+        output += "\n" + stderr.decode().strip()
 
-    await message.answer(f"📥 Результат git pull:\n<pre>{output}</pre>", parse_mode=types.ParseMode.HTML)
+    await message.answer(f"📥 Результат git pull:\n<pre>{output}</pre>", parse_mode=ParseMode.HTML)
     await message.answer("✅ Обновление завершено, перезапускаю бота...")
 
-    # Перезапуск бота через os.execv
-    # Здесь путь до python3 и скрипта
     os.execv("/usr/bin/python3", ["/usr/bin/python3", "/root/vpnbot/bot.py"])
 
 # --- Регистрация хендлеров ---

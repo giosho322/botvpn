@@ -61,12 +61,14 @@ async def start(message: types.Message):
         await message.answer("Привет, кожанный! Купи VPN и катайся без блоков!", reply_markup=user_keyboard)
 
 async def buy_vpn(message: types.Message):
-    markup = InlineKeyboardMarkup()
+    markup = InlineKeyboardMarkup(inline_keyboard=[])
     for name, data in TARIFFS.items():
-        markup.add(InlineKeyboardButton(
-            text=f"{name} (временно бесплатно)",
-            callback_data=f"tariff_{name}"
-        ))
+        markup.add(
+            InlineKeyboardButton(
+                text=f"{name} (временно бесплатно)",
+                callback_data=f"tariff_{name}"
+            )
+        )
     await message.answer("Выбери тариф:", reply_markup=markup)
 
 async def process_fake_payment(callback: types.CallbackQuery):

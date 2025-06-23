@@ -2,7 +2,6 @@ from aiogram import Bot, Dispatcher, types  # ИЗМЕНЕНО: убрал execu
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage  # ИЗМЕНЕНО: импорт MemoryStorage в aiogram v3
 from aiogram.filters.command import Command  # ИЗМЕНЕНО: импорт Command из aiogram.filters.command
-from aiogram.filters.text import Text       # ИЗМЕНЕНО: импорт Text из aiogram.filters.text  # ИЗМЕНЕНО: фильтры для хендлеров
 from config import TOKEN, ADMINS
 from database import User, session
 from wg_utils import generate_wg_config
@@ -57,7 +56,7 @@ async def start(message: types.Message):
     else:
         await message.answer("Привет, кожанный! Купи VPN и катайся без блоков!", reply_markup=user_keyboard)
 
-@dp.message.register(Text(equals="Купить VPN 🚀"))  # ИЗМЕНЕНО: регистрация Text фильтра
+@dp.message.register(lambda message: message.text == "Купить VPN 🚀")  # ИЗМЕНЕНО: фильтр текста через лямбда
 async def buy_vpn(message: types.Message):
     markup = InlineKeyboardMarkup()
     for name, data in TARIFFS.items():
@@ -87,7 +86,7 @@ async def process_fake_payment(callback: types.CallbackQuery):
         with open(qr_path, "rb") as qr_file:
             await bot.send_photo(callback.from_user.id, qr_file)
 
-@dp.message.register(Text(equals="Мой конфиг ⚙️"))  # ИЗМЕНЕНО: регистрация Text фильтра
+@dp.message.register(lambda message: message.text == "Мой конфиг ⚙️")  # ИЗМЕНЕНО: фильтр текста через лямбда
 async def get_config(message: types.Message):
     user = session.query(User).filter_by(user_id=message.from_user.id).first()
     if not user or not user.is_active:
@@ -100,7 +99,7 @@ async def get_config(message: types.Message):
     with open(qr_path, "rb") as qr_file:
         await message.answer_photo(qr_file)
 
-@dp.message.register(Text(equals="Статистика 📊"))  # ИЗМЕНЕНО: регистрация Text фильтра
+@dp.message.register(lambda message: message.text == "Статистика 📊")  # ИЗМЕНЕНО: фильтр текста через лямбда
 async def stats(message: types.Message):
     if message.from_user.id not in ADMINS:
         return

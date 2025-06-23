@@ -108,18 +108,13 @@ async def mailing(message: types.Message):
 
 async def update_bot(message: types.Message):
     await message.answer("🔄 Начинаю обновление бота...")
-    # Останавливаем текущий процесс
-    pids = subprocess.check_output(["pgrep", "-f", "bot.py"]).decode().split()
-    for pid in pids:
-        os.kill(int(pid), 9)
     # Обновляем из Git
     subprocess.call(["git", "-C", "/root/vpnbot", "pull"] )
-    # Перезапускаем бота
-    subprocess.Popen(["python3", "/root/vpnbot/bot.py"] )
+    await message.answer("✅ Обновление завершено, перезапуск...")
+    # Перезапускаем текущий процесс
+    os.execv("/usr/bin/python3", ["python3", "/root/vpnbot/bot.py"])
 
 # Регистрация хендлеров
-
-# Регистрация хедлеров
 
 # Пользователи
 dp.message.register(start, Command(commands=["start"]))
@@ -132,6 +127,8 @@ dp.message.register(support, lambda m: m.text == "Поддержка 🆘")
 dp.message.register(stats, lambda m: m.text == "Статистика 📊")
 dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
 dp.message.register(update_bot, lambda m: m.text == "Обновить бот 🔄")
+dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
+dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
 dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
 dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
 dp.message.register(stats, lambda m: m.text == "Статистика 📊")

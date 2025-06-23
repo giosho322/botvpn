@@ -7,13 +7,15 @@ from aiogram.types import (
     FSInputFile,
 )
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.filters.command import Command
-from aiogram.filters.text import Text
+from aiogram.filters.command import Command  # noqa
+
 from config import TOKEN, ADMINS
 from database import User, session
 from wg_utils import generate_wg_config
 from datetime import datetime
 import asyncio
+import subprocess
+import os
 
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
@@ -30,7 +32,7 @@ user_keyboard = ReplyKeyboardMarkup(
 admin_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
-        [KeyboardButton(text="Статистика 📊"), KeyboardButton(text="Юзеры 👥")],
+        [KeyboardButton(text="Статистика 📊"), KeyboardButton(text="Юзеры 👥"), KeyboardButton(text="Обновить бот 🔄")],
         [KeyboardButton(text="Бан 🔨"), KeyboardButton(text="Рассылка 📢")],
     ],
 )
@@ -104,20 +106,32 @@ async def ban_user(message: types.Message):
 async def mailing(message: types.Message):
     await message.answer("Функция рассылки временно недоступна.")
 
+async def update_bot(message: types.Message):
+    await message.answer("🔄 Начинаю обновление бота...")
+    # Останавливаем текущий процесс
+    pids = subprocess.check_output(["pgrep", "-f", "bot.py"]).decode().split()
+    for pid in pids:
+        os.kill(int(pid), 9)
+    # Обновляем из Git
+    subprocess.call(["git", "-C", "/root/vpnbot", "pull"] )
+    # Перезапускаем бота
+    subprocess.Popen(["python3", "/root/vpnbot/bot.py"] )
+
 # Регистрация хендлеров
 
 # Пользователи
-dp.message.register(start, Command(commands=["start"]))
-dp.message.register(buy_vpn, Text(equals="Купить VPN 🚀"))
+(dp.message.register(start, Command(commands=["start"]))
+dp.message.register(buy_vpn, lambda m: m.text == "Купить VPN 🚀")
 dp.callback_query.register(process_fake_payment, lambda cb: cb.data and cb.data.startswith("tariff_"))
-dp.message.register(get_config, Text(equals="Мой конфиг ⚙️"))
-dp.message.register(support, Text(equals="Поддержка 🆘"))
+dp.message.register(get_config, lambda m: m.text == "Мой конфиг ⚙️")
+dp.message.register(support, lambda m: m.text == "Поддержка 🆘")
 
 # Админ
-dp.message.register(stats, Text(equals="Статистика 📊"))
-dp.message.register(users_list, Text(equals="Юзеры 👥"))
-dp.message.register(ban_user, Text(equals="Бан 🔨"))
-dp.message.register(mailing, Text(equals="Рассылка 📢"))
+dp.message.register(stats, lambda m: m.text == "Статистика 📊")
+dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
+dp.message.register(update_bot, lambda m: m.text == "Обновить бот 🔄")
+dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
+dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
 
 async def main():
     await dp.start_polling(bot)

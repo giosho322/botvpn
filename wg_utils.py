@@ -1,6 +1,8 @@
 import os  # Для работы с файлами
 import qrcode  # Для QR-кодов (чтобы юзеры не ебали мозг)
 from datetime import datetime, timedelta  # Для работы с датами
+from config import WG_SERVER_PUBKEY
+from config import WG_SERVER_IP
 
 # Папка, где будут лежать конфиги (создаётся автоматом)
 CONFIGS_DIR = "configs"
@@ -10,10 +12,10 @@ def generate_wg_config(user_id: int, days: int):
     """Генерирует конфиг и QR-код для пользователя"""
     # Генерим приватный ключ (через команду wg genkey)
     private_key = os.popen("wg genkey").read().strip()  # strip() убирает лишние пробелы
-    
+
     # Получаем публичный ключ из приватного (через wg pubkey)
     public_key = os.popen(f"echo '{private_key}' | wg pubkey").read().strip()
-    
+
     # Даём пользователю IP вида 10.0.0.X (чтобы не было конфликтов)
     ip = f"10.0.0.{user_id % 254 + 2}"  # %254 – чтобы не вылезти за пределы сети
 
@@ -25,8 +27,8 @@ Address = {ip}/24
 DNS = 8.8.8.8  # Гугловский DNS, можно сменить
 
 [Peer]
-PublicKey = {WG_SERVER_PUBKEY}  # Ключ сервера (берётся из config.py)
-Endpoint = {WG_SERVER_IP}:51820  # IP и порт сервера
+PublicKey = {WG_SERVER_PUBKEY}
+Endpoint = {WG_SERVER_IP}:51820
 AllowedIPs = 0.0.0.0/0  # Весь трафик через VPN
 """
 

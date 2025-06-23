@@ -15,19 +15,27 @@ dp = Dispatcher(storage=storage)  # ИЗМЕНЕНО: в v3 диспетчер �
 user_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
-        [KeyboardButton("Купить VPN 🚀")],
-        [KeyboardButton("Мой конфиг ⚙️"), KeyboardButton("Поддержка 🆘")]
+        [KeyboardButton(text="Купить VPN 🚀")],
+        [
+            KeyboardButton(text="Мой конфиг ⚙️"),
+            KeyboardButton(text="Поддержка 🆘")
+        ],
     ]
 )
 
 admin_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
-        [KeyboardButton("Статистика 📊"), KeyboardButton("Юзеры 👥")],
-        [KeyboardButton("Бан 🔨"), KeyboardButton("Рассылка 📢")]
+        [
+            KeyboardButton(text="Статистика 📊"),
+            KeyboardButton(text="Юзеры 👥")
+        ],
+        [
+            KeyboardButton(text="Бан 🔨"),
+            KeyboardButton(text="Рассылка 📢")
+        ],
     ]
 )
-
 ### --- Тарифы --- ###
 TARIFFS = {
     "1 месяц": {"days": 30, "price": 0},  # Цены больше не имеют значения

@@ -1,7 +1,8 @@
 from aiogram import Bot, Dispatcher, types  # ИЗМЕНЕНО: убрал executor
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage  # ИЗМЕНЕНО: импорт MemoryStorage в aiogram v3
-from aiogram.filters import Command, Text  # ИЗМЕНЕНО: фильтры для хендлеров
+from aiogram.filters.command import Command  # ИЗМЕНЕНО: импорт Command из aiogram.filters.command
+from aiogram.filters.text import Text       # ИЗМЕНЕНО: импорт Text из aiogram.filters.text  # ИЗМЕНЕНО: фильтры для хендлеров
 from config import TOKEN, ADMINS
 from database import User, session
 from wg_utils import generate_wg_config

@@ -119,14 +119,21 @@ async def update_bot(message: types.Message):
 
 # Регистрация хендлеров
 
+# Регистрация хедлеров
+
 # Пользователи
-(dp.message.register(start, Command(commands=["start"]))
+dp.message.register(start, Command(commands=["start"]))
 dp.message.register(buy_vpn, lambda m: m.text == "Купить VPN 🚀")
 dp.callback_query.register(process_fake_payment, lambda cb: cb.data and cb.data.startswith("tariff_"))
 dp.message.register(get_config, lambda m: m.text == "Мой конфиг ⚙️")
 dp.message.register(support, lambda m: m.text == "Поддержка 🆘")
 
 # Админ
+dp.message.register(stats, lambda m: m.text == "Статистика 📊")
+dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
+dp.message.register(update_bot, lambda m: m.text == "Обновить бот 🔄")
+dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
+dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
 dp.message.register(stats, lambda m: m.text == "Статистика 📊")
 dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
 dp.message.register(update_bot, lambda m: m.text == "Обновить бот 🔄")

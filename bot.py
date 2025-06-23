@@ -44,8 +44,6 @@ async def start(message: types.Message):
     if user.user_id in ADMINS:
         await message.answer("Админ-панель", reply_markup=admin_keyboard)
     else:
-         await message.answer("Админ-панель", reply_markup=admin_keyboard)
-    else:
         await message.answer("Привет, кожанный! Купи VPN и катайся без блоков!", reply_markup=user_keyboard)
 
 @dp.message_handler(text="Купить VPN 🚀")

@@ -26,6 +26,10 @@ user_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="Купить VPN 🚀")],
         [KeyboardButton(text="Мой конфиг ⚙️"), KeyboardButton(text="Поддержка 🆘")],
+        [KeyboardButton(text="Как установить конфиг 📖")]  # Новая кнопка инструкция
+    ],
+)],
+        [KeyboardButton(text="Мой конфиг ⚙️"), KeyboardButton(text="Поддержка 🆘")],
     ],
 )
 
@@ -91,6 +95,23 @@ async def get_config(message: types.Message):
 async def support(message: types.Message):
     await message.answer("Поддержка: @your_support_username или напиши сюда ваши вопросы!")
 
+async def how_install(message: types.Message):
+    text = (
+        "📖 *Как установить VPN-конфиг* 📖
+"
+        "1\. Скачай полученный `.conf` файл на компьютер или телефон\.
+"
+        "2\. На ПК: установи WireGuard из офиц\. сайта и импортируй файл через 'Import tunnel from file' 🌐
+"
+        "3\. На телефон: установи приложение WireGuard из AppStore/PlayMarket и импортируй конфиг 📱
+"
+        "4\. Подключись одним нажатием в приложении и пользуйся VPN без блокировок 🚀
+"
+        "Если что-то не работает — пиши в поддержку 🆘"
+    )
+    await message.answer(text, parse_mode=types.ParseMode.MARKDOWN)
+
+
 async def stats(message: types.Message):
     count = session.query(User).count()
     await message.answer(f"📊 Всего пользователей: {count}")
@@ -107,10 +128,10 @@ async def mailing(message: types.Message):
     await message.answer("Функция рассылки временно недоступна.")
 
 async def update_bot(message: types.Message):
-    await message.answer("🔄 Начинаю бомбордировку израиля...")
+    await message.answer("🔄 Начинаю обновление бота...")
     # Обновляем из Git
     subprocess.call(["git", "-C", "/root/vpnbot", "pull"] )
-    await message.answer("✅ израиля нет биток растет господин...")
+    await message.answer("✅ Обновление завершено, перезапуск...")
     # Перезапускаем текущий процесс
     os.execv("/usr/bin/python3", ["python3", "/root/vpnbot/bot.py"])
 
@@ -122,6 +143,8 @@ dp.message.register(buy_vpn, lambda m: m.text == "Купить VPN 🚀")
 dp.callback_query.register(process_fake_payment, lambda cb: cb.data and cb.data.startswith("tariff_"))
 dp.message.register(get_config, lambda m: m.text == "Мой конфиг ⚙️")
 dp.message.register(support, lambda m: m.text == "Поддержка 🆘")
+# Инструкция по установке конфига
+dp.message.register(how_install, lambda m: m.text == "Как установить конфиг 📖")
 
 # Админ
 dp.message.register(stats, lambda m: m.text == "Статистика 📊")

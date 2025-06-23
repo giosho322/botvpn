@@ -21,15 +21,13 @@ bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
+# --- Клавиатуры ---
 user_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[
         [KeyboardButton(text="Купить VPN 🚀")],
         [KeyboardButton(text="Мой конфиг ⚙️"), KeyboardButton(text="Поддержка 🆘")],
-        [KeyboardButton(text="Как установить конфиг 📖")]  # Новая кнопка инструкция
-    ],
-)],
-        [KeyboardButton(text="Мой конфиг ⚙️"), KeyboardButton(text="Поддержка 🆘")],
+        [KeyboardButton(text="Как установить конфиг 📖")],
     ],
 )
 
@@ -41,12 +39,14 @@ admin_keyboard = ReplyKeyboardMarkup(
     ],
 )
 
+# --- Тарифы ---
 TARIFFS = {
     "1 месяц": {"days": 30},
     "3 месяца": {"days": 90},
     "6 месяцев": {"days": 180},
 }
 
+# --- Хендлеры ---
 async def start(message: types.Message):
     user = session.query(User).filter_by(user_id=message.from_user.id).first()
     if not user:
@@ -97,20 +97,14 @@ async def support(message: types.Message):
 
 async def how_install(message: types.Message):
     text = (
-        "📖 *Как установить VPN-конфиг* 📖
-"
-        "1\. Скачай полученный `.conf` файл на компьютер или телефон\.
-"
-        "2\. На ПК: установи WireGuard из офиц\. сайта и импортируй файл через 'Import tunnel from file' 🌐
-"
-        "3\. На телефон: установи приложение WireGuard из AppStore/PlayMarket и импортируй конфиг 📱
-"
-        "4\. Подключись одним нажатием в приложении и пользуйся VPN без блокировок 🚀
-"
+        "📖 *Как установить VPN-конфиг* 📖\n"
+        "1. Скачай `.conf` файл на ПК или телефон.\n"
+        "2. На ПК: установи WireGuard и импортируй через 'Import tunnel from file' 🌐\n"
+        "3. На телефон: установи WireGuard из AppStore/PlayMarket и импортируй конфиг 📱\n"
+        "4. Нажми 'Activate' и пользуйся VPN 🚀\n"
         "Если что-то не работает — пиши в поддержку 🆘"
     )
     await message.answer(text, parse_mode=types.ParseMode.MARKDOWN)
-
 
 async def stats(message: types.Message):
     count = session.query(User).count()
@@ -129,31 +123,18 @@ async def mailing(message: types.Message):
 
 async def update_bot(message: types.Message):
     await message.answer("🔄 Начинаю обновление бота...")
-    # Обновляем из Git
     subprocess.call(["git", "-C", "/root/vpnbot", "pull"] )
     await message.answer("✅ Обновление завершено, перезапуск...")
-    # Перезапускаем текущий процесс
     os.execv("/usr/bin/python3", ["python3", "/root/vpnbot/bot.py"])
 
-# Регистрация хендлеров
-
-# Пользователи
+# --- Регистрация хендлеров ---
 dp.message.register(start, Command(commands=["start"]))
 dp.message.register(buy_vpn, lambda m: m.text == "Купить VPN 🚀")
 dp.callback_query.register(process_fake_payment, lambda cb: cb.data and cb.data.startswith("tariff_"))
 dp.message.register(get_config, lambda m: m.text == "Мой конфиг ⚙️")
 dp.message.register(support, lambda m: m.text == "Поддержка 🆘")
-# Инструкция по установке конфига
 dp.message.register(how_install, lambda m: m.text == "Как установить конфиг 📖")
 
-# Админ
-dp.message.register(stats, lambda m: m.text == "Статистика 📊")
-dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
-dp.message.register(update_bot, lambda m: m.text == "Обновить бот 🔄")
-dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
-dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
-dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
-dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
 dp.message.register(stats, lambda m: m.text == "Статистика 📊")
 dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
 dp.message.register(update_bot, lambda m: m.text == "Обновить бот 🔄")

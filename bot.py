@@ -7,10 +7,7 @@ from aiogram.types import (
     FSInputFile,
 )
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.filters.command import Command
-from aiogram.filters import Text
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters.command import Command  # noqa
 
 from config import TOKEN, ADMINS
 from database import User, session
@@ -23,10 +20,6 @@ import os
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
-
-# --- Состояние для рассылки ---
-class MailingState(StatesGroup):
-    waiting_for_text = State()
 
 # --- Клавиатуры ---
 user_keyboard = ReplyKeyboardMarkup(
@@ -79,7 +72,7 @@ async def buy_vpn(message: types.Message):
     await message.answer("Выбери тариф:", reply_markup=markup)
 
 async def process_fake_payment(callback: types.CallbackQuery):
-    tariff = callback.data.split("_", 1)[1]
+    tariff = callback.data.split("_",1)[1]
     days = TARIFFS[tariff]["days"]
     user = session.query(User).filter_by(user_id=callback.from_user.id).first()
     if user:
@@ -125,34 +118,23 @@ async def users_list(message: types.Message):
 async def ban_user(message: types.Message):
     await message.answer("Функция бана временно недоступна.")
 
-# --- Рассылка ---
-async def mailing(message: types.Message, state: FSMContext):
-    if message.from_user.id not in ADMINS:
-        await message.answer("❌ У вас нет прав на рассылку.")
-        return
-    await state.set_state(MailingState.waiting_for_text)
-    await message.answer("Введите текст рассылки, который получат все пользователи:")
+async def mailing(message: types.Message):
+    await message.answer("Напиши текст рассылки (будет отправлен всем пользователям):")
 
-@dp.message(MailingState.waiting_for_text)
-async def process_mailing_text(message: types.Message, state: FSMContext):
-    text = message.text
-    await state.clear()
+    async def get_text(msg: types.Message):
+        users = session.query(User.user_id).all()
+        for u in users:
+            try:
+                await bot.send_message(u.user_id, msg.text)
+            except:
+                continue
+        await msg.answer("✅ Рассылка завершена")
 
-    users = session.query(User).filter_by(is_active=True).all()
-    success, fail = 0, 0
-
-    for user in users:
-        try:
-            await bot.send_message(user.user_id, text)
-            success += 1
-        except Exception:
-            fail += 1
-
-    await message.answer(f"📬 Рассылка завершена.\nУспешно: {success}\nНе доставлено: {fail}")
+    dp.message.register(get_text, lambda m: True, once=True)
 
 async def update_bot(message: types.Message):
     await message.answer("🔄 Начинаю обновление бота...")
-    subprocess.call(["git", "-C", "/root/vpnbot", "pull"])
+    subprocess.call(["git", "-C", "/root/vpnbot", "pull"] )
     await message.answer("✅ Обновление завершено, перезапуск...")
     os.execv("/usr/bin/python3", ["python3", "/root/vpnbot/bot.py"])
 
@@ -168,9 +150,8 @@ dp.message.register(stats, lambda m: m.text == "Статистика 📊")
 dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
 dp.message.register(update_bot, lambda m: m.text == "Обновить бот 🔄")
 dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
-dp.message.register(mailing, Text(text="Рассылка 📢"))
+dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
 
-# --- Запуск ---
 async def main():
     await dp.start_polling(bot)
 

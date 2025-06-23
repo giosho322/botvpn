@@ -8,6 +8,9 @@ from aiogram.types import (
 )
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.filters.command import Command  # noqa
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.filters import StateFilter
 
 from config import TOKEN, ADMINS
 from database import User, session
@@ -45,6 +48,10 @@ TARIFFS = {
     "3 месяца": {"days": 90},
     "6 месяцев": {"days": 180},
 }
+
+# --- Состояния ---
+class MailingState(StatesGroup):
+    waiting_for_text = State()
 
 # --- Хендлеры ---
 async def start(message: types.Message):
@@ -118,19 +125,19 @@ async def users_list(message: types.Message):
 async def ban_user(message: types.Message):
     await message.answer("Функция бана временно недоступна.")
 
-async def mailing(message: types.Message):
+async def mailing(message: types.Message, state: FSMContext):
     await message.answer("Напиши текст рассылки (будет отправлен всем пользователям):")
+    await state.set_state(MailingState.waiting_for_text)
 
-    async def get_text(msg: types.Message):
-        users = session.query(User.user_id).all()
-        for u in users:
-            try:
-                await bot.send_message(u.user_id, msg.text)
-            except:
-                continue
-        await msg.answer("✅ Рассылка завершена")
-
-    dp.message.register(get_text, lambda m: True, once=True)
+async def get_text(msg: types.Message, state: FSMContext):
+    users = session.query(User.user_id).all()
+    for u in users:
+        try:
+            await bot.send_message(u.user_id, msg.text)
+        except:
+            continue
+    await msg.answer("✅ Рассылка завершена")
+    await state.clear()
 
 async def update_bot(message: types.Message):
     await message.answer("🔄 Начинаю обновление бота...")
@@ -151,6 +158,7 @@ dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
 dp.message.register(update_bot, lambda m: m.text == "Обновить бот 🔄")
 dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
 dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
+dp.message.register(get_text, StateFilter(MailingState.waiting_for_text))
 
 async def main():
     await dp.start_polling(bot)

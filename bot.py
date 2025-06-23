@@ -6,6 +6,7 @@ from database import User, session
 from wg_utils import generate_wg_config
 from datetime import datetime
 import asyncio  # ИЗМЕНЕНО: для запуска бота
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 # Инициализация бота
 bot = Bot(token=TOKEN)
@@ -13,13 +14,21 @@ storage = MemoryStorage()
 dp = Dispatcher(storage=storage)  # ИЗМЕНЕНО: в v3 диспетчер инициализируется без бота
 
 ### --- Клавиатуры --- ###
-user_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-user_keyboard.add(KeyboardButton("Купить VPN 🚀"))
-user_keyboard.add(KeyboardButton("Мой конфиг ⚙️"), KeyboardButton("Поддержка 🆘"))
+user_keyboard = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [KeyboardButton("Купить VPN 🚀")],
+        [KeyboardButton("Мой конфиг ⚙️"), KeyboardButton("Поддержка 🆘")]
+    ]
+)
 
-admin_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-admin_keyboard.add(KeyboardButton("Статистика 📊"), KeyboardButton("Юзеры 👥"))
-admin_keyboard.add(KeyboardButton("Бан 🔨"), KeyboardButton("Рассылка 📢"))
+admin_keyboard = ReplyKeyboardMarkup(
+    resize_keyboard=True,
+    keyboard=[
+        [KeyboardButton("Статистика 📊"), KeyboardButton("Юзеры 👥")],
+        [KeyboardButton("Бан 🔨"), KeyboardButton("Рассылка 📢")]
+    ]
+)
 
 ### --- Тарифы --- ###
 TARIFFS = {

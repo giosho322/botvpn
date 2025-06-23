@@ -1,5 +1,5 @@
 # Токен бота (бери у @BotFather, тупой)
-TOKEN = "AHHt-qKpuSZ23tC9_IB9LnrThaxH-W1EW0"  
+TOKEN = "7715409757:AAHHt-qKpuSZ23tC9_IB9LnrThaxH-W1EW0"  
 
 # Сюда впиши свой ID (узнаёшь у @userinfobot, дебил)
 ADMINS = [1203425573]  

@@ -16,6 +16,7 @@ from datetime import datetime
 import asyncio
 import subprocess
 import os
+import signal
 
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
@@ -122,10 +123,27 @@ async def mailing(message: types.Message):
     await message.answer("Функция рассылки временно недоступна.")
 
 async def update_bot(message: types.Message):
+    if message.from_user.id not in ADMINS:
+        await message.answer("🚫 У тебя нет доступа к этой команде.")
+        return
+
     await message.answer("🔄 Начинаю обновление бота...")
-    subprocess.call(["git", "-C", "/root/vpnbot", "pull"] )
-    await message.answer("✅ Обновление завершено, перезапуск...")
-    os.execv("/usr/bin/python3", ["python3", "/root/vpnbot/bot.py"])
+
+    # Выполнить git pull и получить вывод
+    process = await asyncio.create_subprocess_exec(
+        "git", "-C", "/root/vpnbot", "pull",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+    output = stdout.decode().strip() + ("\n" + stderr.decode().strip() if stderr else "")
+
+    await message.answer(f"📥 Результат git pull:\n<pre>{output}</pre>", parse_mode=types.ParseMode.HTML)
+    await message.answer("✅ Обновление завершено, перезапускаю бота...")
+
+    # Перезапуск бота через os.execv
+    # Здесь путь до python3 и скрипта
+    os.execv("/usr/bin/python3", ["/usr/bin/python3", "/root/vpnbot/bot.py"])
 
 # --- Регистрация хендлеров ---
 dp.message.register(start, Command(commands=["start"]))

@@ -35,9 +35,9 @@ admin_keyboard = ReplyKeyboardMarkup(
 )
 
 TARIFFS = {
-    "1 месяц": {"days": 30, "price": 0},
-    "3 месяца": {"days": 90, "price": 0},
-    "6 месяцев": {"days": 180, "price": 0},
+    "1 месяц": {"days": 30},
+    "3 месяца": {"days": 90},
+    "6 месяцев": {"days": 180},
 }
 
 async def start(message: types.Message):
@@ -54,7 +54,7 @@ async def start(message: types.Message):
     if message.from_user.id in ADMINS:
         await message.answer("Админ-панель", reply_markup=admin_keyboard)
     else:
-        await message.answer("Привет, кожанный! Купи VPN и катайся без блоков!", reply_markup=user_keyboard)
+        await message.answer("Привет! Купи VPN и катайся без блоков!", reply_markup=user_keyboard)
 
 async def buy_vpn(message: types.Message):
     buttons = [
@@ -79,24 +79,44 @@ async def process_fake_payment(callback: types.CallbackQuery):
 async def get_config(message: types.Message):
     user = session.query(User).filter_by(user_id=message.from_user.id).first()
     if not user or not user.is_active:
-        await message.answer("У тебя нет активной подписки! Выбери тариф через 'Купить VPN 🚀'")
+        await message.answer("Нет активной подписки. Купи VPN через 'Купить VPN 🚀'")
         return
     config_path, qr_path = generate_wg_config(user.user_id, 30)
     await message.answer_document(FSInputFile(config_path))
     await message.answer_photo(FSInputFile(qr_path))
 
-async def stats(message: types.Message):
-    if message.from_user.id not in ADMINS:
-        return
-    count = session.query(User).count()
-    await message.answer(f"📊 Юзеров: {count}")
+async def support(message: types.Message):
+    await message.answer("Поддержка: @your_support_username или напиши сюда ваши вопросы!")
 
-# Регистрация
+async def stats(message: types.Message):
+    count = session.query(User).count()
+    await message.answer(f"📊 Всего пользователей: {count}")
+
+async def users_list(message: types.Message):
+    users = session.query(User.user_id).all()
+    ids = [str(u.user_id) for u in users]
+    await message.answer("Список user_id:\n" + "\n".join(ids))
+
+async def ban_user(message: types.Message):
+    await message.answer("Функция бана временно недоступна.")
+
+async def mailing(message: types.Message):
+    await message.answer("Функция рассылки временно недоступна.")
+
+# Регистрация хендлеров
+
+# Пользователи
 dp.message.register(start, Command(commands=["start"]))
 dp.message.register(buy_vpn, lambda m: m.text == "Купить VPN 🚀")
 dp.callback_query.register(process_fake_payment, lambda cb: cb.data and cb.data.startswith("tariff_"))
 dp.message.register(get_config, lambda m: m.text == "Мой конфиг ⚙️")
+dp.message.register(support, lambda m: m.text == "Поддержка 🆘")
+
+# Админ
 dp.message.register(stats, lambda m: m.text == "Статистика 📊")
+dp.message.register(users_list, lambda m: m.text == "Юзеры 👥")
+dp.message.register(ban_user, lambda m: m.text == "Бан 🔨")
+dp.message.register(mailing, lambda m: m.text == "Рассылка 📢")
 
 async def main():
     await dp.start_polling(bot)

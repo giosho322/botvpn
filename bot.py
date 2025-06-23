@@ -43,7 +43,6 @@ TARIFFS = {
     "6 месяцев": {"days": 180, "price": 0},
 }
 
-@dp.message.register(Command(commands=["start"]))
 async def start(message: types.Message):
     user = session.query(User).filter_by(user_id=message.from_user.id).first()
     if not user:
@@ -61,7 +60,6 @@ async def start(message: types.Message):
     else:
         await message.answer("Привет, кожанный! Купи VPN и катайся без блоков!", reply_markup=user_keyboard)
 
-@dp.message.register(lambda message: message.text == "Купить VPN 🚀")
 async def buy_vpn(message: types.Message):
     markup = InlineKeyboardMarkup()
     for name, data in TARIFFS.items():
@@ -71,7 +69,6 @@ async def buy_vpn(message: types.Message):
         ))
     await message.answer("Выбери тариф:", reply_markup=markup)
 
-@dp.callback_query.register(lambda c: c.data and c.data.startswith('tariff_'))
 async def process_fake_payment(callback: types.CallbackQuery):
     tariff_name = callback.data.split('_', 1)[1]
     days = TARIFFS[tariff_name]["days"]
@@ -89,7 +86,6 @@ async def process_fake_payment(callback: types.CallbackQuery):
         with open(qr_path, "rb") as qr_file:
             await bot.send_photo(callback.from_user.id, qr_file)
 
-@dp.message.register(lambda message: message.text == "Мой конфиг ⚙️")
 async def get_config(message: types.Message):
     user = session.query(User).filter_by(user_id=message.from_user.id).first()
     if not user or not user.is_active:
@@ -102,12 +98,18 @@ async def get_config(message: types.Message):
     with open(qr_path, "rb") as qr_file:
         await message.answer_photo(qr_file)
 
-@dp.message.register(lambda message: message.text == "Статистика 📊")
 async def stats(message: types.Message):
     if message.from_user.id not in ADMINS:
         return
     users_count = session.query(User).count()
     await message.answer(f"📊 Статистика:\n👥 Юзеров: {users_count}")
+
+# Регистрация хэндлеров с фильтрами
+dp.message.register(start, Command(commands=["start"]))
+dp.message.register(buy_vpn, lambda message: message.text == "Купить VPN 🚀")
+dp.callback_query.register(process_fake_payment, lambda c: c.data and c.data.startswith('tariff_'))
+dp.message.register(get_config, lambda message: message.text == "Мой конфиг ⚙️")
+dp.message.register(stats, lambda message: message.text == "Статистика 📊")
 
 async def main():
     await dp.start_polling(bot)

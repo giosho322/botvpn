@@ -38,7 +38,7 @@ TARIFFS = {
 }
 
 ### --- Обработчики команд --- ###
-@dp.message.register(Command("start"))  # ИЗМЕНЕНО: регистрация Command старт
+@dp.message.register(Command(commands=["start"]))  # ИЗМЕНЕНО: корректный синтаксис Command filter  # ИЗМЕНЕНО: регистрация Command старт
 async def start(message: types.Message):
     user = session.query(User).filter_by(user_id=message.from_user.id).first()
     if not user:

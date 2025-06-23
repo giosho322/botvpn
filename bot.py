@@ -1,15 +1,16 @@
-from aiogram import Bot, Dispatcher, executor, types #rrrrr
+from aiogram import Bot, Dispatcher, types  # ИЗМЕНЕНО: убрал executor, он в aiogram 3 по-другому
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.fsm.storage.memory import MemoryStorage  # ИЗМЕНЕНО: изменился импорт MemoryStorage в v3
 from config import TOKEN, ADMINS
 from database import User, session
 from wg_utils import generate_wg_config
 from datetime import datetime
+import asyncio  # ИЗМЕНЕНО: для запуска бота
 
 # Инициализация бота
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
+dp = Dispatcher(storage=storage)  # ИЗМЕНЕНО: в v3 диспетчер инициализируется без бота
 
 ### --- Клавиатуры --- ###
 user_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -28,7 +29,7 @@ TARIFFS = {
 }
 
 ### --- Обработчики команд --- ###
-@dp.message_handler(commands=['start'])
+@dp.message(commands=['start'])  # ИЗМЕНЕНО: теперь так декорируются команды
 async def start(message: types.Message):
     user = session.query(User).filter_by(user_id=message.from_user.id).first()
     if not user:
@@ -46,7 +47,7 @@ async def start(message: types.Message):
     else:
         await message.answer("Привет, кожанный! Купи VPN и катайся без блоков!", reply_markup=user_keyboard)
 
-@dp.message_handler(text="Купить VPN 🚀")
+@dp.message(text="Купить VPN 🚀")  # ИЗМЕНЕНО: фильтры обновлены
 async def buy_vpn(message: types.Message):
     markup = InlineKeyboardMarkup()
     for name, data in TARIFFS.items():
@@ -56,7 +57,7 @@ async def buy_vpn(message: types.Message):
         ))
     await message.answer("Выбери тариф:", reply_markup=markup)
 
-@dp.callback_query_handler(lambda c: c.data.startswith('tariff_'))
+@dp.callback_query(lambda c: c.data and c.data.startswith('tariff_'))  # ИЗМЕНЕНО: обработчик callback_query
 async def process_fake_payment(callback: types.CallbackQuery):
     tariff_name = callback.data.split('_', 1)[1]
     days = TARIFFS[tariff_name]["days"]
@@ -74,7 +75,7 @@ async def process_fake_payment(callback: types.CallbackQuery):
         with open(qr_path, "rb") as qr_file:
             await bot.send_photo(callback.from_user.id, qr_file)
 
-@dp.message_handler(text="Мой конфиг ⚙️")
+@dp.message(text="Мой конфиг ⚙️")
 async def get_config(message: types.Message):
     user = session.query(User).filter_by(user_id=message.from_user.id).first()
     if not user or not user.is_active:
@@ -87,7 +88,7 @@ async def get_config(message: types.Message):
     with open(qr_path, "rb") as qr_file:
         await message.answer_photo(qr_file)
 
-@dp.message_handler(text="Статистика 📊")
+@dp.message(text="Статистика 📊")
 async def stats(message: types.Message):
     if message.from_user.id not in ADMINS:
         return
@@ -95,5 +96,8 @@ async def stats(message: types.Message):
     await message.answer(f"📊 Статистика:\n👥 Юзеров: {users_count}")
 
 ### --- Запуск бота --- ###
+async def main():
+    await dp.start_polling(bot)
+
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())  # ИЗМЕНЕНО: запуск через asyncio.run

@@ -6,8 +6,6 @@ from database import User, session
 from wg_utils import generate_wg_config
 from datetime import datetime
 import asyncio  # ИЗМЕНЕНО: для запуска бота
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
-
 # Инициализация бота
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()

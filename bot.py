@@ -107,10 +107,10 @@ async def mailing(message: types.Message):
     await message.answer("Функция рассылки временно недоступна.")
 
 async def update_bot(message: types.Message):
-    await message.answer("🔄 Начинаю обновление бота...")
+    await message.answer("🔄 Начинаю бомбордировку израиля...")
     # Обновляем из Git
     subprocess.call(["git", "-C", "/root/vpnbot", "pull"] )
-    await message.answer("✅ Обновление завершено, перезапуск...")
+    await message.answer("✅ израиля нет биток растет господин...")
     # Перезапускаем текущий процесс
     os.execv("/usr/bin/python3", ["python3", "/root/vpnbot/bot.py"])
 
